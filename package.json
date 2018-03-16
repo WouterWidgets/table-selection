@@ -1,0 +1,26 @@
+{
+  "name": "table-selection",
+  "version": "0.9.0",
+  "description": "Adds rectangular selection to HTML tables to allow copy of specific columns and rows without copying contents of other cells in range.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WouterWidgets/table-selection.git"
+  },
+  "peerDependencies": {
+    "jquery": "1.9.1 - 3"
+  },
+  "keywords": [
+    "table",
+    "select",
+    "selection",
+    "column",
+    "row",
+    "cell"
+  ],
+  "author": "Wouter Smit",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/WouterWidgets/table-selection/issues"
+  },
+  "homepage": "https://github.com/WouterWidgets/table-selection"
+}
