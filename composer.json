@@ -1,5 +1,5 @@
 {
-  "name": "widgetsnl/table-select",
+  "name": "widgets-nl/table-selection",
   "description": "Adds rectangular selection to HTML tables to allow copy of specific columns and rows without copying contents of other cells in range.",
   "keywords": [
     "html",
