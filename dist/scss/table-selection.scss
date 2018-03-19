@@ -10,6 +10,7 @@ $table-selection-highlight-color: fade(#007bff, 25%);
   color: inherit;
 }
 
-.table-selection td.selected {
+.table-selection td.selected,
+.table-striped.table-selection td.selected {
   background: rgba(0, 123, 255, .25);
 }
