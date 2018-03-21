@@ -1,4 +1,4 @@
-$table-selection-highlight-color: fade(#007bff, 25%);
+$table-selection-highlight-color: fade(#007bff, 25%) !default;
 
 .table-selection *::selection {
   background: transparent;
