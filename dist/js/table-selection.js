@@ -5,8 +5,92 @@
  *
  * Requires jQuery
 */
-(function TableSelect() {
 
+class TableSelection {
+
+    constructor(selector = null) {
+        console.log('selector:', selector);
+
+        this.selection = null;
+        this.nativeSelection = null;
+        this.targets = document.querySelectorAll(selector);
+
+        this.setEventHandlers();
+    }
+
+    setEventHandlers() {
+
+        document.addEventListener('selectionchange', e => {
+            this.selectionChangeHandler(e);
+        });
+        document.addEventListener('copy', e => {
+            this.copyHandler(e);
+        });
+        window.addEventListener('blur', e => {
+            this.deselect();
+        })
+    }
+
+    isWithinTarget(element) {
+        this.targets.forEach(target => {
+            if (target.contains(element)) {
+                return true;
+            }
+        });
+
+        return false;
+    }
+
+    selectionChangeHandler(e) {
+        this.nativeSelection = window.getSelection ? getSelection() : null;
+
+        if (!this.nativeSelection) {
+            return;
+        }
+
+        let selectedElement = this.nativeSelection.anchorNode;
+        if (selectedElement.nodeType !== 1) {
+            selectedElement = selectedElement.parentNode;
+        }
+
+        if (
+            !this.isWithinTarget(selectedElement)
+        ) {
+            console.warn(selectedElement, 'not within targets', this.nativeSelection);
+            return;
+        }
+        // if (!this.isWithinTarget(e.target)) {
+        //     console.warn('not in target', e.currentTarget);
+        //     return;
+        // }
+        console.log('selectionchange', e);
+    }
+
+    copyHandler(e) {
+        console.log('copy', e);
+    }
+
+    select() {
+        this.deselect();
+    }
+
+    deselect() {
+        if (!this.selection) {
+            return;
+        }
+        this.selection = null;
+        this.nativeSelection = null;
+        console.log('deselect');
+    }
+
+}
+
+new TableSelection('table');
+
+
+
+(function TableSelect() {
+return;
     if ( !window.jQuery ) {
         window.console && console.warn("TableSelect requires %cjQuery%c.", 'font-weight:bold', 'font-weight:normal');
         return;
@@ -15,12 +99,12 @@
     var $selection;
 
     function init() {
-        $(document)
-            .on('selectionchange', select)
-            .on('copy', clipboardCopyHandler)
-        ;
-        $(window)
-            .on('blur', deselect)
+        // $(document)
+        //     .on('selectionchange', select)
+        //     .on('copy', clipboardCopyHandler)
+        // ;
+        // $(window)
+        //     .on('blur', deselect)
     }
 
     function select() {
