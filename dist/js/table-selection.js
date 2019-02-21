@@ -8,11 +8,10 @@
 
 class TableSelection {
 
-    constructor(selector = null) {
-        console.log('selector:', selector);
-
+    constructor(selector = null, selectedClass = 'selected') {
         this.selection = null;
         this.nativeSelection = null;
+        this.selectedClass = selectedClass;
         this.targets = document.querySelectorAll(selector);
 
         this.setEventHandlers();
@@ -26,149 +25,160 @@ class TableSelection {
         document.addEventListener('copy', e => {
             this.copyHandler(e);
         });
-        window.addEventListener('blur', e => {
+        window.addEventListener('blur', () => {
             this.deselect();
-        })
+        });
     }
 
-    isWithinTarget(element) {
-        this.targets.forEach(target => {
-            if (target.contains(element)) {
+    isWithinTargets(element) {
+        for ( const target of this.targets ) {
+            if ( target.contains(element) ) {
                 return true;
             }
-        });
+        }
 
         return false;
     }
 
-    selectionChangeHandler(e) {
+    selectionChangeHandler() {
+
+        this.deselect();
         this.nativeSelection = window.getSelection ? getSelection() : null;
 
-        if (!this.nativeSelection) {
+        if ( !this.nativeSelection ) {
             return;
         }
 
-        let selectedElement = this.nativeSelection.anchorNode;
-        if (selectedElement.nodeType !== 1) {
-            selectedElement = selectedElement.parentNode;
-        }
+        this.getSelection();
+        this.showSelection();
+    }
 
-        if (
-            !this.isWithinTarget(selectedElement)
-        ) {
-            console.warn(selectedElement, 'not within targets', this.nativeSelection);
+    getSelection() {
+
+        const tds = this.getSelectionTds();
+
+        if (!tds || !this.isWithinTargets(tds.start) ) {
             return;
         }
-        // if (!this.isWithinTarget(e.target)) {
-        //     console.warn('not in target', e.currentTarget);
-        //     return;
-        // }
-        console.log('selectionchange', e);
+
+        const trs = this.getSelectionTrs(tds);
+
+        this.selection = {
+            tds: tds,
+            trs: trs,
+        };
+
+        this.selection.cells = this.getCellsInSelectionRange(this.selection);
+
+        return this.selection;
     }
 
-    copyHandler(e) {
-        console.log('copy', e);
+    getCellsInSelectionRange(selection) {
+
+        const tbody = selection.trs.start.parentElement;
+        const trStartIndex = selection.trs.start.rowIndex - 1;
+        const trEndIndex = selection.trs.end.rowIndex - 1;
+
+        const tdStartIndex = selection.tds.start.cellIndex;
+        const tdEndIndex = selection.tds.end.cellIndex;
+
+        const trs = Array
+            .from(tbody.rows)
+            .slice(trStartIndex, trEndIndex + 1)
+        ;
+
+        let cells = [];
+        trs.forEach(tr => {
+            const tds = Array
+                .from(tr.cells)
+                .slice(tdStartIndex, tdEndIndex + 1);
+
+            cells = cells.concat(tds);
+        });
+
+        return cells;
     }
 
-    select() {
-        this.deselect();
+    getSelectionTds() {
+        let start = this.nativeSelection.anchorNode;
+        let end = this.nativeSelection.focusNode;
+
+        if (!start || !end) {
+            return;
+        }
+
+        if (start.nodeType !== 1) {
+            start = start.parentElement;
+        }
+
+        if (end.nodeType !== 1) {
+            end = end.parentElement;
+        }
+
+        start = start.closest('td');
+        end = end.closest('td');
+
+        if (!start || !end) {
+            return;
+        }
+
+        if (start.cellIndex > end.cellIndex) {
+            [end, start] = [start, end];
+        }
+
+        return { start, end }
+    }
+
+    getSelectionTrs(tds) {
+        if (!tds.start || !tds.end) {
+            return;
+        }
+
+        let start = tds.start.closest('tr');
+        let end = tds.end.closest('tr');
+
+        if (start.rowIndex > end.rowIndex) {
+            [end, start] = [start, end];
+        }
+
+        return { start, end }
+    }
+
+    showSelection() {
+        this.selection && this.selection.cells.forEach(cell => {
+            cell.classList.add(this.selectedClass);
+        });
+    }
+
+    hideSelection() {
+        this.selection && this.selection.cells.forEach(cell => {
+            cell.classList.remove(this.selectedClass);
+        });
     }
 
     deselect() {
-        if (!this.selection) {
+        if ( !this.selection ) {
             return;
         }
+
+        this.hideSelection();
         this.selection = null;
         this.nativeSelection = null;
-        console.log('deselect');
+
     }
 
-}
+    getSelectionText() {
 
-new TableSelection('table');
-
-
-
-(function TableSelect() {
-return;
-    if ( !window.jQuery ) {
-        window.console && console.warn("TableSelect requires %cjQuery%c.", 'font-weight:bold', 'font-weight:normal');
-        return;
-    }
-
-    var $selection;
-
-    function init() {
-        // $(document)
-        //     .on('selectionchange', select)
-        //     .on('copy', clipboardCopyHandler)
-        // ;
-        // $(window)
-        //     .on('blur', deselect)
-    }
-
-    function select() {
-
-        // Clear previous selection
-        $selection && $selection.removeClass('selected');
-
-        // Get current selection
-        var selection = window.getSelection ? getSelection() : null;
-        if ( !selection || !selection.anchorNode || !$(selection.anchorNode).parents('.table-selection').length ) {
-            return;
-        }
-
-        // Get cell / row refs
-        var $startCell = $(selection.anchorNode).closest('td'),
-            $endCell = $(selection.focusNode).closest('td'),
-            $startRow = $startCell.closest('tr'),
-            $endRow = $endCell.closest('tr'),
-            $tbody = $startRow.closest('tbody')
-        ;
-
-        // Normalize to allow all directions
-        var startCellIndex = Math.min($startCell.index(), $endCell.index()),
-            endCellIndex = Math.max($startCell.index(), $endCell.index()),
-            startRowIndex = Math.min($startRow.index(), $endRow.index()),
-            endRowIndex = Math.max($startRow.index(), $endRow.index())
-        ;
-
-        // Get elements in current selection
-        $selection = $(null);
-        $tbody
-            .find('tr')
-            .slice(startRowIndex, endRowIndex + 1)
-            .each(function() {
-                $selection = $selection.add(
-                    $(this)
-                        .find('td')
-                        .slice(startCellIndex, endCellIndex + 1)
-                )
-                ;
-            })
-        ;
-
-        // Highlight them
-        $selection.addClass('selected');
-    }
-
-    function deselect() {
-        var selection = window.getSelection ? getSelection() : null;
-        selection && selection.empty();
-    }
-
-    function getSelectionText() {
-
-        var rowData = {},
+        let rowData = {},
             data = [];
 
-        $selection.each(function() {
-            var rowIndex = $(this).parent().index();
+        this.selection.cells.forEach(cell => {
+            const rowIndex = cell.parentElement.rowIndex;
             rowData[rowIndex] = rowData[rowIndex] || [];
-            rowData[rowIndex].push($(this).text());
+            rowData[rowIndex].push(cell.innerText);
         });
 
-        for ( var i in rowData ) {
+        for ( const i in rowData ) {
             data.push(rowData[i].join("\t"));
         }
 
@@ -176,11 +186,15 @@ return;
 
     }
 
-    function clipboardCopyHandler(e) {
-        e.originalEvent.clipboardData.setData('text/plain', getSelectionText());
+    copyHandler(e) {
+        if (!this.selection) {
+            return;
+        }
+        e.clipboardData.setData('text/plain', this.getSelectionText());
         e.preventDefault();
+        console.log('copy', e, this.getSelectionText());
     }
 
-    $(init);
+}
 
-})();
+new TableSelection('table');
