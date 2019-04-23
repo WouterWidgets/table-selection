@@ -13,15 +13,15 @@
 
 <div class="container">
     <table class="table table-striped table-selection">
-        <thead>
+<!--        <thead>-->
         <tr>
             <th>ID</th>
             <th>First name</th>
             <th>Last name</th>
             <th>Email</th>
         </tr>
-        </thead>
-        <tbody>
+<!--        </thead>-->
+<!--        <tbody>-->
         <tr>
             <td>1</td>
             <td>John</td>
@@ -46,7 +46,7 @@
             <td>Bloggs</td>
             <td><a href="mailto:joe.bloggs@gmail.com">joe.bloggs@gmail.com</a></td>
         </tr>
-        </tbody>
+<!--        </tbody>-->
     </table>
 </div>
 
@@ -54,21 +54,25 @@
     <div class="card">
         <div class="card-body">
             <ul>
-                <li>Just add <code>.table-selection</code> class to a table and include the code from the Javascript and CSS panels in your project.</li>
+                <li>Add <code>.table-selection</code> class to a table and include the Javascript and CSS in your project.</li>
+                <li>Initialize using `new TableSelection()` or `TableSelection.initialize()`</li>
                 <li>Supports horizontal, vertical and rectangular selections.</li>
                 <li>Includes clipboard support with table formatting for Excel or other spreadsheet software!</li>
                 <li>It even works on mobile!</li>
                 <li>Tested and working in Chrome, Firefox, Edge, Mobile Chrome and Samsung Browser</li>
+                <li>You can use a different CSS selector instead of <code>.table-selection</code>, but you'll need to edit the CSS rules accordingly.</li>
             </ul>
         </div>
     </div>
 </div>
 <br>
 
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>-->
-<!--<script src="../dist/js/table-selection.js"></script>-->
-
 <script src="../dist/js/table-selection.js"></script>
+<script>
+    window.addEventListener('load', function() {
+        TableSelection.initialize();
+    });
+</script>
 
 </body>
 </html>

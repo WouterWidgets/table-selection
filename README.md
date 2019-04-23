@@ -1,3 +1,14 @@
+# THIS PACKAGE WAS MOVED
+This package was moved to [@pxlwidgets/table-selection](https://www.npmjs.com/package/@pxlwidgets/table-selection)
+
+If you are currently using the 'old' package, upgrade by running:
+- `npm un table-selection`
+- `npm i @pxlwidgets/table-selection`
+
+---------------------------
+<br>
+<br>
+
 # TableSelection
 Adds rectangular selection to HTML tables to allow copy of specific columns and rows without copying contents of other cells in range.
 

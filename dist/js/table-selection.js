@@ -1,51 +1,35 @@
 /*!
- * TableSelection library v0.9.0 (https://github.com/WouterWidgets/table-selection)
+ * TableSelection library v0.9.1 (https://github.com/WouterWidgets/table-selection)
  * Copyright (c) 2018 Wouter Smit
  * Licensed under MIT (https://github.com/WouterWidgets/table-selection/blob/master/LICENSE)
- *
- * Requires jQuery
 */
 
 class TableSelection {
 
-    constructor(selector = null, selectedClass = 'selected') {
+    constructor(selector = '.table-selection', selectedClass = 'selected') {
+        this.selector = selector;
+        this.selectedClass = selectedClass;
+
         this.selection = null;
         this.nativeSelection = null;
-        this.selectedClass = selectedClass;
-        this.targets = document.querySelectorAll(selector);
 
         this.setEventHandlers();
     }
 
-    setEventHandlers() {
-
-        document.addEventListener('selectionchange', e => {
-            this.selectionChangeHandler(e);
-        });
-        document.addEventListener('copy', e => {
-            this.copyHandler(e);
-        });
-        window.addEventListener('blur', () => {
-            this.deselect();
-        });
+    static initialize(selector = '.table-selection', selectedClass = 'selected') {
+        new TableSelection(selector, selectedClass);
     }
 
-    isWithinTargets(element) {
-        for ( const target of this.targets ) {
-            if ( target.contains(element) ) {
-                return true;
-            }
-        }
-
-        return false;
+    setEventHandlers() {
+        document.addEventListener('selectionchange', this.selectionChangeHandler.bind(this));
+        document.addEventListener('copy', this.copyHandler.bind(this));
     }
 
     selectionChangeHandler() {
-
         this.deselect();
         this.nativeSelection = window.getSelection ? getSelection() : null;
 
-        if ( !this.nativeSelection ) {
+        if (!this.nativeSelection) {
             return;
         }
 
@@ -54,10 +38,9 @@ class TableSelection {
     }
 
     getSelection() {
-
         const tds = this.getSelectionTds();
 
-        if (!tds || !this.isWithinTargets(tds.start) ) {
+        if (!tds || !tds.start.closest(this.selector)) {
             return;
         }
 
@@ -76,8 +59,10 @@ class TableSelection {
     getCellsInSelectionRange(selection) {
 
         const tbody = selection.trs.start.parentElement;
-        const trStartIndex = selection.trs.start.rowIndex - 1;
-        const trEndIndex = selection.trs.end.rowIndex - 1;
+        const hasThead = tbody.previousElementSibling && tbody.previousElementSibling.matches('thead');
+
+        const trStartIndex = selection.trs.start.rowIndex - (hasThead ? 1 : 0);
+        const trEndIndex = selection.trs.end.rowIndex - (hasThead ? 1 : 0);
 
         const tdStartIndex = selection.tds.start.cellIndex;
         const tdEndIndex = selection.tds.end.cellIndex;
@@ -126,7 +111,7 @@ class TableSelection {
             [end, start] = [start, end];
         }
 
-        return { start, end }
+        return {start, end}
     }
 
     getSelectionTrs(tds) {
@@ -141,7 +126,7 @@ class TableSelection {
             [end, start] = [start, end];
         }
 
-        return { start, end }
+        return {start, end}
     }
 
     showSelection() {
@@ -157,18 +142,16 @@ class TableSelection {
     }
 
     deselect() {
-        if ( !this.selection ) {
+        if (!this.selection) {
             return;
         }
 
         this.hideSelection();
         this.selection = null;
         this.nativeSelection = null;
-
     }
 
     getSelectionText() {
-
         let rowData = {},
             data = [];
 
@@ -178,12 +161,14 @@ class TableSelection {
             rowData[rowIndex].push(cell.innerText);
         });
 
-        for ( const i in rowData ) {
+        for (const i in rowData) {
+            if (!rowData.hasOwnProperty(i)) {
+                continue;
+            }
             data.push(rowData[i].join("\t"));
         }
 
         return data.join("\n");
-
     }
 
     copyHandler(e) {
@@ -192,9 +177,6 @@ class TableSelection {
         }
         e.clipboardData.setData('text/plain', this.getSelectionText());
         e.preventDefault();
-        console.log('copy', e, this.getSelectionText());
     }
 
 }
-
-new TableSelection('table');
